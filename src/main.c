@@ -1,5 +1,7 @@
 #include "raylib.h"
 #include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 typedef enum
 {
@@ -7,6 +9,11 @@ typedef enum
     Scene_Game,
     Scene_Error
 } Scene;
+
+typedef struct
+{
+    size_t x, y;
+} Point;
 
 typedef enum
 {
@@ -27,6 +34,8 @@ int main(void)
     unsigned int frame_counter = 0;
     Scene scene = Scene_Menu;
 
+    Grid_Type snake_direction;
+    Point snake_head, snake_tail;
     size_t snake_size;
     const size_t grid_dimension = 16;
     Grid_Type grid[grid_dimension * grid_dimension];
@@ -54,19 +63,26 @@ int main(void)
                     grid[i] = Grid_Type_Empty;
                 }
 
-                grid[10] = Grid_Type_East;
-                grid[20] = Grid_Type_Food;
+                snake_size = 1;
+                snake_head.x = grid_dimension / 2;
+                snake_head.y = grid_dimension / 2;
+                snake_tail.x = grid_dimension / 2;
+                snake_tail.y = grid_dimension / 2;
+
+                snake_direction = Grid_Type_North;
+                grid[snake_head.y * grid_dimension + snake_head.x] =
+                    snake_direction;
             }
 
             break;
         }
         case Scene_Game:
         {
+            // player wants to quit
             if (IsKeyPressed(KEY_Q))
             {
                 scene = Scene_Menu;
             }
-
             break;
         }
         case Scene_Error:
