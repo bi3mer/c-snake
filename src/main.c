@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include <stddef.h>
 
 typedef enum
 {
@@ -7,6 +8,17 @@ typedef enum
     Scene_Error
 } Scene;
 
+typedef enum
+{
+    Grid_Type_Empty = 0,
+    Grid_Type_Food,
+    Grid_Type_North,
+    Grid_Type_East,
+    Grid_Type_South,
+    Grid_Type_West,
+    Grid_Type_Error,
+} Grid_Type;
+
 int main(void)
 {
     const int screen_width = 800;
@@ -14,6 +26,10 @@ int main(void)
 
     unsigned int frame_counter = 0;
     Scene scene = Scene_Menu;
+
+    size_t snake_size;
+    const size_t grid_dimension = 16;
+    Grid_Type grid[grid_dimension * grid_dimension];
 
     InitWindow(screen_width, screen_height, "Snake");
     SetTargetFPS(60);
@@ -31,6 +47,15 @@ int main(void)
             if (IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_ENTER))
             {
                 scene = Scene_Game;
+
+                snake_size = 0;
+                for (size_t i = 0; i < grid_dimension * grid_dimension; ++i)
+                {
+                    grid[i] = Grid_Type_Empty;
+                }
+
+                grid[10] = Grid_Type_East;
+                grid[20] = Grid_Type_Food;
             }
 
             break;
@@ -78,7 +103,39 @@ int main(void)
         }
         case Scene_Game:
         {
-            DrawText("GAME", 190, 200, 20, WHITE);
+            const int game_space = (int)(0.8f * screen_width);
+            const int start = (int)(0.1f * screen_width);
+            const int dimension = game_space / grid_dimension;
+
+            for (int y = 0; y < grid_dimension; ++y)
+            {
+                const int col = y * (int)grid_dimension;
+                for (int x = 0; x < (int)grid_dimension; ++x)
+                {
+                    const int render_pos = start + (x * dimension);
+                    switch (grid[col + x])
+                    {
+                    case Grid_Type_Empty:
+                        break;
+                    case Grid_Type_Food:
+                        DrawRectangle(render_pos, render_pos, dimension - 1,
+                                      dimension - 1, GREEN);
+                        break;
+                    case Grid_Type_North:
+                    case Grid_Type_East:
+                    case Grid_Type_South:
+                    case Grid_Type_West:
+                        DrawRectangle(render_pos, render_pos, dimension - 1,
+                                      dimension - 1, RED);
+                        break;
+                    case Grid_Type_Error:
+                    default:
+                        break;
+                    }
+                }
+            }
+
+            DrawRectangleLines(start, start, game_space, game_space, WHITE);
             break;
         }
         case Scene_Error:
