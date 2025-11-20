@@ -1,5 +1,6 @@
 #include "assert.h"
 #include "raylib.h"
+#include <stddef.h>
 
 typedef enum
 {
@@ -62,9 +63,9 @@ int main(void)
 
     unsigned int frame_count = 0;
 
+    int snake_size;
     Point snake_head;
     Point snake_tail;
-    int snake_size;
     Grid_Type snake_direction;
     Grid_Type grid[D][D] = {0};
 
@@ -89,13 +90,27 @@ int main(void)
             {
                 current_scene = Scene_Game;
 
+                snake_size = 1;
                 snake_head.x = D / 2;
                 snake_head.y = D / 2;
                 snake_tail = snake_head;
                 snake_direction = Grid_North;
 
+                for (size_t y = 0; y < D; ++y)
+                {
+                    for (size_t x = 0; x < D; ++x)
+                    {
+
+                        grid[y][x] = Grid_Empty;
+                    }
+                }
+
                 grid[snake_head.y][snake_head.x] = snake_direction;
+                grid[5][1] = Grid_Food;
                 grid[6][1] = Grid_Food;
+                grid[7][1] = Grid_Food;
+                grid[8][1] = Grid_Food;
+                grid[9][1] = Grid_Food;
 
                 frame_count = 1;
             }
@@ -141,11 +156,41 @@ int main(void)
             {
                 grid[snake_head.y][snake_head.x] = snake_direction;
                 snake_head = point_plus_direction(snake_head, snake_direction);
-                grid[snake_head.y][snake_head.x] = snake_direction;
 
-                Grid_Type temp_dir = grid[snake_tail.y][snake_tail.x];
-                grid[snake_tail.y][snake_tail.x] = Grid_Empty;
-                snake_tail = point_plus_direction(snake_tail, temp_dir);
+                if (snake_head.x < 0 || snake_head.x >= D || snake_head.y < 0 ||
+                    snake_head.y >= D)
+                {
+                    current_scene = Scene_Menu;
+                }
+                else
+                {
+                    switch (grid[snake_head.y][snake_head.x])
+                    {
+                    case Grid_Food:
+                        ++snake_size;
+                        break;
+                    case Grid_North:
+                    case Grid_East:
+                    case Grid_South:
+                    case Grid_West:
+                        // ran into snake
+                        // TODO: handle player lost
+                        current_scene = Scene_Menu;
+                        break;
+                    case Grid_Empty:
+                    {
+                        Grid_Type temp_dir = grid[snake_tail.y][snake_tail.x];
+                        grid[snake_tail.y][snake_tail.x] = Grid_Empty;
+                        snake_tail = point_plus_direction(snake_tail, temp_dir);
+
+                        break;
+                    }
+                    default:
+                        break;
+                    }
+
+                    grid[snake_head.y][snake_head.x] = snake_direction;
+                }
             }
 
             break;
