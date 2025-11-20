@@ -1,6 +1,7 @@
 #include "assert.h"
 #include "raylib.h"
 #include <stddef.h>
+#include <time.h>
 
 typedef enum
 {
@@ -52,6 +53,42 @@ static inline Point point_plus_direction(Point p, Grid_Type t)
     return new_p;
 }
 
+static inline void place_food(Grid_Type grid[D][D], const int snake_size)
+{
+    Point p;
+    if (D * D / 2 < snake_size)
+    {
+        Point points[D * D];
+        int len = 0;
+
+        for (int y = 0; y < D; ++y)
+        {
+            for (int x = 0; x < D; ++x)
+            {
+                if (grid[y][x] == Grid_Empty)
+                {
+                    points[len].x = x;
+                    points[len].y = y;
+
+                    ++len;
+                }
+            }
+        }
+
+        p = points[GetRandomValue(0, len - 1)];
+    }
+    else
+    {
+        do
+        {
+            p.x = GetRandomValue(0, D - 1);
+            p.y = GetRandomValue(0, D - 1);
+        } while (grid[p.y][p.x] != Grid_Empty);
+    }
+
+    grid[p.y][p.x] = Grid_Food;
+}
+
 int main(void)
 {
     const int screen_width = 800;
@@ -75,6 +112,8 @@ int main(void)
 
     InitWindow(screen_width, screen_height, "Snake");
     SetTargetFPS(60);
+
+    SetRandomSeed(time(NULL));
 
     while (!WindowShouldClose())
     {
@@ -106,11 +145,7 @@ int main(void)
                 }
 
                 grid[snake_head.y][snake_head.x] = snake_direction;
-                grid[5][1] = Grid_Food;
-                grid[6][1] = Grid_Food;
-                grid[7][1] = Grid_Food;
-                grid[8][1] = Grid_Food;
-                grid[9][1] = Grid_Food;
+                place_food(grid, snake_size);
 
                 frame_count = 1;
             }
@@ -168,6 +203,7 @@ int main(void)
                     {
                     case Grid_Food:
                         ++snake_size;
+                        place_food(grid, snake_size);
                         break;
                     case Grid_North:
                     case Grid_East:
