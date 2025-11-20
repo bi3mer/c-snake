@@ -6,7 +6,9 @@
 typedef enum
 {
     Scene_Menu = 0,
-    Scene_Game
+    Scene_Game,
+    Scene_Win,
+    Scene_Loss,
 } Scene;
 
 typedef enum
@@ -164,25 +166,25 @@ int main(void)
             }
 
             if ((IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP)) &&
-                snake_direction != Grid_South)
+                grid[snake_head.y][snake_head.x] != Grid_South)
             {
                 snake_direction = Grid_North;
             }
 
             if ((IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) &&
-                snake_direction != Grid_West)
+                grid[snake_head.y][snake_head.x] != Grid_West)
             {
                 snake_direction = Grid_East;
             }
 
             if ((IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN)) &&
-                snake_direction != Grid_North)
+                grid[snake_head.y][snake_head.x] != Grid_North)
             {
                 snake_direction = Grid_South;
             }
 
             if ((IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT)) &&
-                snake_direction != Grid_East)
+                grid[snake_head.y][snake_head.x] != Grid_East)
             {
                 snake_direction = Grid_West;
             }
@@ -195,24 +197,37 @@ int main(void)
                 if (snake_head.x < 0 || snake_head.x >= D || snake_head.y < 0 ||
                     snake_head.y >= D)
                 {
-                    current_scene = Scene_Menu;
+                    current_scene = Scene_Loss;
+                    frame_count = 1;
                 }
                 else
                 {
                     switch (grid[snake_head.y][snake_head.x])
                     {
                     case Grid_Food:
+                    {
                         ++snake_size;
-                        place_food(grid, snake_size);
+
+                        if (snake_size == D * D)
+                        {
+                            current_scene = Scene_Win;
+                            frame_count = 1;
+                        }
+                        else
+                        {
+                            place_food(grid, snake_size);
+                        }
                         break;
+                    }
                     case Grid_North:
                     case Grid_East:
                     case Grid_South:
                     case Grid_West:
-                        // ran into snake
-                        // TODO: handle player lost
-                        current_scene = Scene_Menu;
+                    {
+                        frame_count = 1;
+                        current_scene = Scene_Loss;
                         break;
+                    }
                     case Grid_Empty:
                     {
                         Grid_Type temp_dir = grid[snake_tail.y][snake_tail.x];
@@ -229,6 +244,15 @@ int main(void)
                 }
             }
 
+            break;
+        }
+        case Scene_Loss:
+        case Scene_Win:
+        {
+            if (frame_count % 90 == 0)
+            {
+                current_scene = Scene_Menu;
+            }
             break;
         }
         default:
@@ -293,6 +317,27 @@ int main(void)
                     }
                 }
             }
+            break;
+        }
+        case Scene_Loss:
+        {
+            const char *title = "You Lost :(";
+            const int t_size = 40;
+            const int t_w = MeasureText(title, t_size);
+
+            DrawText(title, (screen_width - t_w) / 2, screen_height / 4, t_size,
+                     RED);
+            break;
+        }
+        case Scene_Win:
+        {
+            const char *title = "You Won!!!";
+            const int t_size = 40;
+            const int t_w = MeasureText(title, t_size);
+
+            DrawText(title, (screen_width - t_w) / 2, screen_height / 4, t_size,
+                     WHITE);
+
             break;
         }
         default:
