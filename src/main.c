@@ -1,3 +1,4 @@
+#include "assert.h"
 #include "raylib.h"
 
 typedef enum
@@ -18,6 +19,38 @@ typedef enum
 
 #define D 10
 
+typedef struct
+{
+    int x, y;
+} Point;
+
+static inline Point point_plus_direction(Point p, Grid_Type t)
+{
+    Point new_p = p;
+
+    switch (t)
+    {
+    case Grid_North:
+        --new_p.y;
+        break;
+    case Grid_East:
+        ++new_p.x;
+        break;
+    case Grid_South:
+        ++new_p.y;
+        break;
+    case Grid_West:
+        --new_p.x;
+        break;
+    case Grid_Empty:
+    case Grid_Food:
+    default:
+        assert(false);
+    }
+
+    return new_p;
+}
+
 int main(void)
 {
     const int screen_width = 800;
@@ -29,10 +62,11 @@ int main(void)
 
     unsigned int frame_count = 0;
 
-    int snake_size = 1;
+    Point snake_head;
+    Point snake_tail;
+    int snake_size;
+    Grid_Type snake_direction;
     Grid_Type grid[D][D] = {0};
-    grid[1][6] = Grid_North;
-    grid[6][1] = Grid_Food;
 
     bool show_menu_instructions = true;
 
@@ -54,6 +88,16 @@ int main(void)
             if (IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_ENTER))
             {
                 current_scene = Scene_Game;
+
+                snake_head.x = D / 2;
+                snake_head.y = D / 2;
+                snake_tail = snake_head;
+                snake_direction = Grid_North;
+
+                grid[snake_head.y][snake_head.x] = snake_direction;
+                grid[6][1] = Grid_Food;
+
+                frame_count = 1;
             }
 
             if (frame_count % 30 == 0)
@@ -69,10 +113,45 @@ int main(void)
                 current_scene = Scene_Menu;
             }
 
+            if ((IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP)) &&
+                snake_direction != Grid_South)
+            {
+                snake_direction = Grid_North;
+            }
+
+            if ((IsKeyPressed(KEY_D) || IsKeyPressed(KEY_RIGHT)) &&
+                snake_direction != Grid_West)
+            {
+                snake_direction = Grid_East;
+            }
+
+            if ((IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN)) &&
+                snake_direction != Grid_North)
+            {
+                snake_direction = Grid_South;
+            }
+
+            if ((IsKeyPressed(KEY_A) || IsKeyPressed(KEY_LEFT)) &&
+                snake_direction != Grid_East)
+            {
+                snake_direction = Grid_West;
+            }
+
+            if (frame_count % 30 == 0)
+            {
+                grid[snake_head.y][snake_head.x] = snake_direction;
+                snake_head = point_plus_direction(snake_head, snake_direction);
+                grid[snake_head.y][snake_head.x] = snake_direction;
+
+                Grid_Type temp_dir = grid[snake_tail.y][snake_tail.x];
+                grid[snake_tail.y][snake_tail.x] = Grid_Empty;
+                snake_tail = point_plus_direction(snake_tail, temp_dir);
+            }
+
             break;
         }
         default:
-            break;
+            assert(false);
         }
 
         ///////////////////////////////////////////////////////////////////////
@@ -136,7 +215,7 @@ int main(void)
             break;
         }
         default:
-            break;
+            assert(false);
         }
 
         EndDrawing();
