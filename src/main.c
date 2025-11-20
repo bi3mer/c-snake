@@ -6,12 +6,33 @@ typedef enum
     Scene_Game
 } Scene;
 
+typedef enum
+{
+    Grid_Empty = 0,
+    Grid_Food,
+    Grid_North,
+    Grid_East,
+    Grid_South,
+    Grid_West,
+} Grid_Type;
+
+#define D 10
+
 int main(void)
 {
     const int screen_width = 800;
     const int screen_height = 800;
 
+    const int start_d = (int)(screen_width * 0.1f);
+    const int play_d = (int)(screen_width * 0.8f);
+    const int grid_d = play_d / D;
+
     unsigned int frame_count = 0;
+
+    int snake_size = 1;
+    Grid_Type grid[D][D] = {0};
+    grid[1][6] = Grid_North;
+    grid[6][1] = Grid_Food;
 
     bool show_menu_instructions = true;
 
@@ -84,7 +105,34 @@ int main(void)
         }
         case Scene_Game:
         {
-            DrawText("Game Scene", 450, 450, 40, WHITE);
+            for (int y_i = 0; y_i < D; ++y_i)
+            {
+                const int y_r = start_d + (y_i * grid_d);
+
+                for (int x_i = 0; x_i < D; ++x_i)
+                {
+                    const int x_r = start_d + (x_i * grid_d);
+
+                    switch (grid[y_i][x_i])
+                    {
+                    case Grid_Food:
+                        DrawRectangle(x_r, y_r, grid_d - 1, grid_d - 1, GREEN);
+                        break;
+                    case Grid_North:
+                    case Grid_East:
+                    case Grid_South:
+                    case Grid_West:
+                    {
+                        DrawRectangle(x_r, y_r, grid_d - 1, grid_d - 1, RED);
+                        break;
+                    }
+                    case Grid_Empty:
+                    default:
+                        DrawRectangle(x_r, y_r, grid_d - 1, grid_d - 1, BLUE);
+                        break;
+                    }
+                }
+            }
             break;
         }
         default:
