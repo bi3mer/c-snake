@@ -1,17 +1,25 @@
 # Snake
 
-A simple [raylib](https://www.raylib.com/index.html)-based implementation of *Snake*; no linked-lists required.
+A simple [raylib](https://www.raylib.com/index.html)-based implementation of *Snake*.
 
 ## Compiling and Running
 
-Instructions assume you are (1) using Linux or macOS and (2) that you have [gcc (C99)](https://gcc.gnu.org/), [CMake](https://cmake.org/), and [git](https://git-scm.com/) installed. 
+Instructions assume you are (1) using Linux or macOS and (2) that you have [gcc (C99)](https://gcc.gnu.org/), [zig](https://ziglang.org/), and [git](https://git-scm.com/) installed. (Theoretically, the command below will also work with Windows with minor changes.)
 
 ```bash
 git clone https://github.com/bi3mer/c-snake.git
 cd c-snake
-./setup.sh
+mkdir deps
+cd deps
+git clone --depth 1 https://github.com/raysan5/raylib.git
+rm -rf raylib/.git
+cd ..
+zig build run
 ```
 
-[./setup.sh](./setup.sh) makes a `build` directory and makes an executable `build/bin/project`.
+## Release build
 
-If you want to make changes and run, then from the `build` directory, run `cmake --build .` to build a new executable, then `./bin/project` to run it. Also, if you add new source files, you should run `cmake ..` before `cmake --build .`.
+```bash
+zig build -Doptimize=ReleaseFast                         # mac build
+zig build -Dtarget=x86_64-windows -Doptimize=ReleaseFast # Windows Build
+```
